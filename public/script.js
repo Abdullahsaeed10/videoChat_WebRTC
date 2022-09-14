@@ -16,11 +16,14 @@ myVideo.muted = true;
 // here we gonna save all the users that are connected to our room
 const peers = {};
 
+let myVideoStream;
 
 navigator.mediaDevices.getUserMedia({
     video: true,
     audio: true
 }).then(stream => {
+    myVideoStream = stream;
+
     // the stream gonna be the video that we're gonna play
     addVideoStream(myVideo, stream);
 
@@ -42,10 +45,102 @@ navigator.mediaDevices.getUserMedia({
 
 });
 
-
 socket.on('user-disconnected', userId => {
     if (peers[userId]) peers[userId].close()
 })  
+
+//*///////////////////////////////////////////////////////////////////////////////////////////////
+
+const stopVideo = document.querySelector("#stopVideo");
+const muteButton = document.querySelector("#muteButton");
+const inviteButton = document.querySelector("#inviteButton");
+
+const shareScreen = document.querySelector("#shareScreen");
+const record = document.querySelector("#record");
+const chatbutton = document.querySelector("#chatbutton");
+
+// const IDD = location.href.split('/').slice(-1)[0]
+// /// making room id to call it in the room.ejs called displayRoomId
+// displayIDD.innerHTML = `<h3>Room ID: ${IDD}</h3>`
+
+// this going to stop and play our video depending on the toggle
+stopVideo.addEventListener("click", () => {
+    const enabled = myVideoStream.getVideoTracks()[0].enabled;
+    if (enabled) {
+        myVideoStream.getVideoTracks()[0].enabled = false;
+        // localStream.getVideoTracks()[0].stop();
+        html = `<i class="fas fa-video-slash"></i>`;
+        stopVideo.classList.toggle("background__red");
+        stopVideo.innerHTML = html;
+    } else {
+        myVideoStream.getVideoTracks()[0].enabled = true;
+        html = `<i class="fas fa-video"></i>`;
+        stopVideo.classList.toggle("background__red");
+        stopVideo.innerHTML = html;
+    }
+});
+
+/// this going to mute and unmute our audio
+muteButton.addEventListener("click", () => {
+    const enabled = myVideoStream.getAudioTracks()[0].enabled;
+    if (enabled) {
+        myVideoStream.getAudioTracks()[0].enabled = false;
+        html = `<i class="fas fa-microphone-slash"></i>`;
+        muteButton.classList.toggle("background__red");
+        muteButton.innerHTML = html;
+    } else {
+        myVideoStream.getAudioTracks()[0].enabled = true;
+        html = `<i class="fas fa-microphone"></i>`;
+        muteButton.classList.toggle("background__red");
+        muteButton.innerHTML = html;
+    }
+});
+
+
+// this is going to print the room ID for the user to invite other users
+inviteButton.addEventListener("click", (e) => {
+    prompt(
+        "Copy this link and send it to people you want to meet with",
+        // get the room id from the url
+        location.href
+        // location.href.split('/').slice(-1)[0]
+    );
+});
+
+
+
+// TODO:after we close the sharescreen the video is not showing
+// sharescreen function
+shareScreen.addEventListener("click", () => {
+    navigator.mediaDevices
+        .getDisplayMedia({ video: true })
+        .then((stream) => {
+            addVideoStream(myVideo, stream);
+        })
+        .catch((err) => {
+            console.log(err);
+        });
+});
+
+
+// #TODO:record function
+
+// to toggle the record function
+record.addEventListener("click", () => {
+    const enabled = myVideoStream.getAudioTracks()[0].enabled;
+    if (enabled) {
+        myVideoStream.getAudioTracks()[0].enabled = false;
+        html = `<i class="fas fa-circle -slash"></i>`;
+        record.classList.toggle("background__red");
+        record.innerHTML = html;
+    } else {
+        myVideoStream.getAudioTracks()[0].enabled = true;
+        html = `<i class="fas fa-circle	"></i>`;
+        record.classList.toggle("background__red");
+        record.innerHTML = html;
+    }
+});
+//*///////////////////////////////////////////////////////////////////////////////////////////////
 
 myPeer.on('open', id => {
     //this gonna send an event to the server
